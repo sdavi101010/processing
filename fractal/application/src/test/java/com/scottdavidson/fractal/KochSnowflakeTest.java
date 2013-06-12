@@ -36,4 +36,14 @@ public class KochSnowflakeTest {
 		}
 
 	}
+	
+	@Test
+	public void testAdditionalSegments() {
+		
+		List<Line> additionalSegments = 
+				KochSnowflake.additionalSegments(Line.newLine(
+					Point.newPoint(100, 100), Point.newPoint(130, 70)));
+		
+		
+	}
 }

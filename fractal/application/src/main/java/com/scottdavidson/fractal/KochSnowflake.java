@@ -8,9 +8,31 @@ import com.scottdavidson.fractal.util.Point;
 
 public class KochSnowflake {
 
+	private final Point paneCenterPoint;
+
+	public KochSnowflake newKochSnowflake(Point paneCenterPoint) {
+		return new KochSnowflake(paneCenterPoint);
+	}
+
+	/**
+	 * Single constructor for KochSnowflake.
+	 * 
+	 * @param paneCenterPoint
+	 */
+	protected KochSnowflake(Point paneCenterPoint) {
+		this.paneCenterPoint = paneCenterPoint;
+	}
+
 	// private static Logger LOGGER = Logger.getLogger(KochSnowflake.class);
 
-	public static List<Line> transformSegment(Line lineSegment) {
+	/**
+	 * Transforms the provide lineSegment into 4 others - 1/3 segments for first
+	 * and third and then the fractal edges of the new triangle.
+	 * 
+	 * @param lineSegment
+	 * @return
+	 */
+	public List<Line> transformSegment(Line lineSegment) {
 
 		// Create the return list
 		List<Line> returnList = new ArrayList<Line>(4);
@@ -30,13 +52,17 @@ public class KochSnowflake {
 				Point.newPoint(lineSegment.getStart().getX() + 2
 						* xSegmentLength, lineSegment.getStart().getY() + 2
 						* ySegmentLength), lineSegment.getEnd()));
-		
+
 		// Generate the 2 segements that form an equilateral triangle
-		List<Line> additionalSegments = additionalSegments(Line.newLine(
-				Point.newPoint(lineSegment.getStart().getX() + xSegmentLength, 
-				           lineSegment.getStart().getY() + ySegmentLength), 
-				Point.newPoint(lineSegment.getStart().getX() + 2* xSegmentLength, 
-					           lineSegment.getStart().getY() + 2* ySegmentLength)));
+		List<Line> additionalSegments = additionalSegments(Line.newLine(Point
+				.newPoint(lineSegment.getStart().getX() + xSegmentLength,
+						lineSegment.getStart().getY() + ySegmentLength), Point
+				.newPoint(lineSegment.getStart().getX() + 2 * xSegmentLength,
+						lineSegment.getStart().getY() + 2 * ySegmentLength)));
+
+		// Add the additional segments to the return list
+		returnList.add(additionalSegments.get(0));
+		returnList.add(additionalSegments.get(1));
 
 		// // Trisect the line and save the outer lines
 		// //
@@ -67,38 +93,91 @@ public class KochSnowflake {
 
 		return returnList;
 	}
-	
-	public static List<Line> additionalSegments(Line lineSegment) {
-		
+
+	public List<Line> additionalSegments(Line lineSegment) {
+
 		// Calculate theta, the angle between horizontal and this line segment.
 		// Known values = length of hypotenuse, length of adjacent
 		// theta = acos ( adj / hyp )
 		//
 		// 1. Get the mid point
-		Point midPoint = calculateMidPoint(lineSegment);
-		
-		// 2. Calculate the distance between midPoint and lineSegment.end (which is hyp)
+		Point midPoint = lineSegment.calculateMidPoint();
+
+		// 2. Calculate the distance between midPoint and lineSegment.end (which
+		// is hyp)
 		float hypothenuseLength = midPoint.distanceTo(lineSegment.getEnd());
-		
-		// 3. Calculate the x distance between midPoint and lineSegment.end (which is adj)
+
+		// 3. Calculate the x distance between midPoint and lineSegment.end
+		// (which is adj)
 		Line adjacentLine = Line.newLine(midPoint, lineSegment.getEnd());
 		float adjacentLength = adjacentLine.calculateAbsoluteXLength();
-		
+
 		// 4. Calculate theta
 		float theta = (float) Math.acos(adjacentLength / hypothenuseLength);
-		
-		return null;
-	}
-	
-	protected static Point calculateMidPoint(Line lineSegment) {
-		
-		float xMidCoord = 
-				lineSegment.getStart().getX() + (lineSegment.calculateRelativeXLength() / new Float(2.0));
-		
-		float yMidCoord = 
-				lineSegment.getStart().getY() + (lineSegment.calculateRelativeYLength() / new Float(2.0));
-		
-		return Point.newPoint(xMidCoord, yMidCoord);
+
+		// 5. Calculate phi (PI / 2 - theta)
+		float phi1 = (float) ((Math.PI / 2.0) - theta);
+		float phi2 = (float) ((3 * Math.PI / 2.0) - theta);
+
+		// 6. Calculate the x and y for both phis based on within which
+		// quandrant the line resides
+		//
+		// x = cos(phi) * sqrt(3/4) * segment length
+		// y = sin(phi) * sqrt(3/4) * segment length
+		// TODO Capture the notes (in notebook) of why it's sqrt(3/4)
+		Point extendedMidPoint1;
+		Point extendedMidPoint2;
+
+		if (lineSegment.getQuadrant() == Line.Quadrant.UPPER_LEFT) {
+			float xExtendedMid1 = (float) (Math.cos(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			float yExtendedMid1 = (float) (Math.sin(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			extendedMidPoint1 = Point.newPoint(midPoint.getX() + xExtendedMid1,
+					midPoint.getY() + yExtendedMid1);
+			float xExtendedMid2 = (float) (Math.cos(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			float yExtendedMid2 = (float) (Math.sin(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			extendedMidPoint2 = Point.newPoint(midPoint.getX() + xExtendedMid2,
+					midPoint.getY() + yExtendedMid2);
+		}
+
+		else {
+			float xExtendedMid1 = (float) (Math.cos(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			float yExtendedMid1 = (float) (Math.sin(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			extendedMidPoint1 = Point.newPoint(midPoint.getX() + xExtendedMid1,
+					midPoint.getY() - yExtendedMid1);
+			float xExtendedMid2 = (float) (Math.cos(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			float yExtendedMid2 = (float) (Math.sin(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+			extendedMidPoint2 = Point.newPoint(midPoint.getX() + xExtendedMid2,
+					midPoint.getY() - yExtendedMid2);
+		}
+
+		// 7. Choose the phi which is furthest away from the center point (and
+		// therefore pointing "out"
+		Point extendedMidPoint;
+		float distanceToMidPoint1 = extendedMidPoint1.distanceTo(this.paneCenterPoint);
+		float distanceToMidPoint2 = extendedMidPoint2.distanceTo(this.paneCenterPoint);
+		if (extendedMidPoint1.distanceTo(this.paneCenterPoint) > extendedMidPoint2
+				.distanceTo(this.paneCenterPoint)) {
+			extendedMidPoint = extendedMidPoint1;
+		} else {
+			extendedMidPoint = extendedMidPoint2;
+		}
+
+		// 8. Add the additional line segments
+		List<Line> returnAdditionalSegments = new ArrayList<Line>(2);
+		returnAdditionalSegments.add(Line.newLine(lineSegment.getStart(),
+				extendedMidPoint));
+		returnAdditionalSegments.add(Line.newLine(lineSegment.getEnd(),
+				extendedMidPoint));
+
+		return returnAdditionalSegments;
 	}
 
 	/**
