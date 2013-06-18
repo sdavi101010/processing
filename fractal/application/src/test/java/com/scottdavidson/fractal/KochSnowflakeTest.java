@@ -1,49 +1,40 @@
 package com.scottdavidson.fractal;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
-import org.junit.Test;
-
-import com.scottdavidson.fractal.util.Line;
-import com.scottdavidson.fractal.util.Point;
 
 public class KochSnowflakeTest {
 
-	@Test
-	public void test() {
-
-		List<Line> segments = KochSnowflake.transformSegment(Line.newLine(
-				Point.newPoint(100, 100), Point.newPoint(130, 70)));
-		segments.add(null);
-
-	}
-
-	@Test
-	public void testCalculateMidPoint() {
-
-		{
-			Point midPoint = KochSnowflake.calculateMidPoint(Line.newLine(
-					Point.newPoint(100, 100), Point.newPoint(130, 70)));
-			assertTrue(midPoint.equals(Point.newPoint(115, 85)));
-		}
-
-		{
-			Point midPoint = KochSnowflake.calculateMidPoint(Line.newLine(
-					Point.newPoint(100, 100), Point.newPoint(30, 170)));
-			assertTrue(midPoint.equals(Point.newPoint(65, 135)));
-		}
-
-	}
-	
-	@Test
-	public void testAdditionalSegments() {
-		
-		List<Line> additionalSegments = 
-				KochSnowflake.additionalSegments(Line.newLine(
-					Point.newPoint(100, 100), Point.newPoint(130, 70)));
-		
-		
-	}
+//	private KochSnowflakeLine upperLeft;
+//	private static KochSnowflakeLine upperRight;
+//
+//	@BeforeClass
+//	public  static void setup() {
+//
+//		upperRight = KochSnowflakeLine.newLine(Point.newPoint(400, 253),
+//				Point.newPoint(600, 600), Point.newPoint(400, 426));
+//
+//	}
+//
+//	@Test
+//	public void testCalculateMidPoint() {
+//		
+//		KochSnowflake snowflake = new KochSnowflake(null);
+//		
+//		List<KochSnowflakeLine> additionalSegs = snowflake.additionalSegments(this.upperRight);
+//		for ( KochSnowflakeLine line : additionalSegs) {
+//			System.out.println("Line: " + line.toString());
+//		}
+//
+//		{
+////			Point midPoint = KochSnowflake.calculateMidPoint(Line.newLine(
+////					Point.newPoint(100, 100), Point.newPoint(130, 70)));
+////			assertTrue(midPoint.equals(Point.newPoint(115, 85)));
+//		}
+//
+//		{
+////			Point midPoint = KochSnowflake.calculateMidPoint(Line.newLine(
+////					Point.newPoint(100, 100), Point.newPoint(30, 170)));
+////			assertTrue(midPoint.equals(Point.newPoint(65, 135)));
+//		}
+//
+//	}
 }

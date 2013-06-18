@@ -3,15 +3,13 @@ package com.scottdavidson.fractal;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.scottdavidson.fractal.util.Line;
+import com.scottdavidson.fractal.util.KochSnowflakeLine;
 import com.scottdavidson.fractal.util.Point;
 
 public class KochSnowflake {
 
-	private final Point paneCenterPoint;
-
-	public KochSnowflake newKochSnowflake(Point paneCenterPoint) {
-		return new KochSnowflake(paneCenterPoint);
+	public KochSnowflake newKochSnowflake() {
+		return new KochSnowflake();
 	}
 
 	/**
@@ -19,8 +17,7 @@ public class KochSnowflake {
 	 * 
 	 * @param paneCenterPoint
 	 */
-	protected KochSnowflake(Point paneCenterPoint) {
-		this.paneCenterPoint = paneCenterPoint;
+	protected KochSnowflake() {
 	}
 
 	// private static Logger LOGGER = Logger.getLogger(KochSnowflake.class);
@@ -32,10 +29,11 @@ public class KochSnowflake {
 	 * @param lineSegment
 	 * @return
 	 */
-	public List<Line> transformSegment(Line lineSegment) {
+	public List<KochSnowflakeLine> transformSegment(
+			KochSnowflakeLine lineSegment) {
 
 		// Create the return list
-		List<Line> returnList = new ArrayList<Line>(4);
+		List<KochSnowflakeLine> returnList = new ArrayList<KochSnowflakeLine>(4);
 
 		// Calculate the trisection segment length (x and y direction)
 		float xSegmentLength = (lineSegment.getEnd().getX() - lineSegment
@@ -44,64 +42,46 @@ public class KochSnowflake {
 				.getStart().getY()) / new Float(3.0);
 
 		// Generate the outer segments
-		returnList.add(Line.newLine(lineSegment.getStart(), Point.newPoint(
-				lineSegment.getStart().getX() + xSegmentLength, lineSegment
-						.getStart().getY() + ySegmentLength)));
+		returnList.add(KochSnowflakeLine.newLine(lineSegment.getStart(), Point
+				.newPoint(lineSegment.getStart().getX() + xSegmentLength,
+						lineSegment.getStart().getY() + ySegmentLength),
+				lineSegment.getReferencePoint()));
 
-		returnList.add(Line.newLine(
+		returnList.add(KochSnowflakeLine.newLine(
 				Point.newPoint(lineSegment.getStart().getX() + 2
 						* xSegmentLength, lineSegment.getStart().getY() + 2
-						* ySegmentLength), lineSegment.getEnd()));
+						* ySegmentLength), lineSegment.getEnd(),
+				lineSegment.getReferencePoint()));
 
 		// Generate the 2 segements that form an equilateral triangle
-		List<Line> additionalSegments = additionalSegments(Line.newLine(Point
-				.newPoint(lineSegment.getStart().getX() + xSegmentLength,
-						lineSegment.getStart().getY() + ySegmentLength), Point
-				.newPoint(lineSegment.getStart().getX() + 2 * xSegmentLength,
-						lineSegment.getStart().getY() + 2 * ySegmentLength)));
+		List<KochSnowflakeLine> additionalSegments = additionalSegments(KochSnowflakeLine
+				.newLine(
+						Point.newPoint(lineSegment.getStart().getX()
+								+ xSegmentLength, lineSegment.getStart().getY()
+								+ ySegmentLength),
+						Point.newPoint(lineSegment.getStart().getX() + 2
+								* xSegmentLength, lineSegment.getStart().getY()
+								+ 2 * ySegmentLength),
+						lineSegment.getReferencePoint()));
 
 		// Add the additional segments to the return list
 		returnList.add(additionalSegments.get(0));
 		returnList.add(additionalSegments.get(1));
 
-		// // Trisect the line and save the outer lines
-		// //
-		// // Work x coordinates first
-		// Point start = lineSegment.getStart();
-		// Point end = lineSegment.getEnd();
-		// List<Float> orderedXCoords;
-		// if ( start.getX() <= end.getX()) {
-		// orderedXCoords = calculateOrderedCoordsForTrisection(start.getX(),
-		// end.getX());
-		// }
-		// else {
-		// orderedXCoords = calculateOrderedCoordsForTrisection(end.getX(),
-		// start.getX());
-		// }
-		//
-		// // Work y coordinates
-		// List<Float> orderedYCoords;
-		// if ( start.getY() <= end.getY()) {
-		// orderedYCoords = calculateOrderedCoordsForTrisection(start.getY(),
-		// end.getY());
-		// }
-		// else {
-		// orderedYCoords = calculateOrderedCoordsForTrisection(end.getY(),
-		// start.getY());
-		// }
-		//
-
 		return returnList;
 	}
 
-	public List<Line> additionalSegments(Line lineSegment) {
+	public List<KochSnowflakeLine> additionalSegments(
+			KochSnowflakeLine lineSegment) {
+
+		System.out.println("lineSegment = " + lineSegment.toString());
 
 		// Calculate theta, the angle between horizontal and this line segment.
 		// Known values = length of hypotenuse, length of adjacent
 		// theta = acos ( adj / hyp )
 		//
 		// 1. Get the mid point
-		Point midPoint = lineSegment.calculateMidPoint();
+		Point midPoint = lineSegment.getLine().calculateMidPoint();
 
 		// 2. Calculate the distance between midPoint and lineSegment.end (which
 		// is hyp)
@@ -109,8 +89,11 @@ public class KochSnowflake {
 
 		// 3. Calculate the x distance between midPoint and lineSegment.end
 		// (which is adj)
-		Line adjacentLine = Line.newLine(midPoint, lineSegment.getEnd());
-		float adjacentLength = adjacentLine.calculateAbsoluteXLength();
+		// TODO adjacentLine can be replaced with a simple line (no R or Q
+		// required)
+		KochSnowflakeLine adjacentLine = KochSnowflakeLine.newLine(midPoint,
+				lineSegment.getEnd(), lineSegment.getReferencePoint());
+		float adjacentLength = adjacentLine.getLine().calculateAbsoluteXLength();
 
 		// 4. Calculate theta
 		float theta = (float) Math.acos(adjacentLength / hypothenuseLength);
@@ -127,55 +110,104 @@ public class KochSnowflake {
 		// TODO Capture the notes (in notebook) of why it's sqrt(3/4)
 		Point extendedMidPoint1;
 		Point extendedMidPoint2;
+		Point extendedReferencePoint1;
+		Point extendedReferencePoint2;
 
-		if (lineSegment.getQuadrant() == Line.Quadrant.UPPER_LEFT) {
+		if (lineSegment.getQuadrant() == KochSnowflakeLine.Quadrant.UPPER_LEFT) {
 			float xExtendedMid1 = (float) (Math.cos(phi1)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			float yExtendedMid1 = (float) (Math.sin(phi1)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			extendedMidPoint1 = Point.newPoint(midPoint.getX() + xExtendedMid1,
 					midPoint.getY() + yExtendedMid1);
+
+			float xExtendedRef1 = (float) (Math.cos(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			float yExtendedRef1 = (float) (Math.sin(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			extendedReferencePoint1 = Point.newPoint(midPoint.getX()
+					+ xExtendedRef1, midPoint.getY() + yExtendedRef1);
+
 			float xExtendedMid2 = (float) (Math.cos(phi2)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			float yExtendedMid2 = (float) (Math.sin(phi2)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			extendedMidPoint2 = Point.newPoint(midPoint.getX() + xExtendedMid2,
 					midPoint.getY() + yExtendedMid2);
+
+			float xExtendedRef2 = (float) (Math.cos(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			float yExtendedRef2 = (float) (Math.sin(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			extendedReferencePoint2 = Point.newPoint(midPoint.getX()
+					+ xExtendedRef2, midPoint.getY() + yExtendedRef2);
+
+			System.out.println("(upper left) ");
+			System.out.println("xMP1: " + extendedMidPoint1.toString());
+			System.out.println("xMP2: " + extendedMidPoint2.toString());
+			System.out.println("rMP1: " + extendedReferencePoint1.toString());
+			System.out.println("rMP2: " + extendedReferencePoint2.toString());
 		}
 
 		else {
 			float xExtendedMid1 = (float) (Math.cos(phi1)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			float yExtendedMid1 = (float) (Math.sin(phi1)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			extendedMidPoint1 = Point.newPoint(midPoint.getX() + xExtendedMid1,
 					midPoint.getY() - yExtendedMid1);
+
+			float xExtendedRef1 = (float) (Math.cos(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			float yExtendedRef1 = (float) (Math.sin(phi1)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			extendedReferencePoint1 = Point.newPoint(midPoint.getX()
+					+ xExtendedRef1, midPoint.getY() - yExtendedRef1);
+
 			float xExtendedMid2 = (float) (Math.cos(phi2)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			float yExtendedMid2 = (float) (Math.sin(phi2)
-					* Math.sqrt((float) 0.75) * lineSegment.calculateLength());
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength());
 			extendedMidPoint2 = Point.newPoint(midPoint.getX() + xExtendedMid2,
 					midPoint.getY() - yExtendedMid2);
+
+			float xExtendedRef2 = (float) (Math.cos(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			float yExtendedRef2 = (float) (Math.sin(phi2)
+					* Math.sqrt((float) 0.75) * lineSegment.getLine().calculateLength() / 2);
+			extendedReferencePoint2 = Point.newPoint(midPoint.getX()
+					+ xExtendedRef2, midPoint.getY() - yExtendedRef2);
+
+			System.out.println("(upper right) ");
+			System.out.println("xMP1: " + extendedMidPoint1.toString());
+			System.out.println("xMP2: " + extendedMidPoint2.toString());
+			System.out.println("rMP1: " + extendedReferencePoint1.toString());
+			System.out.println("rMP2: " + extendedReferencePoint2.toString());
+
 		}
 
 		// 7. Choose the phi which is furthest away from the center point (and
 		// therefore pointing "out"
 		Point extendedMidPoint;
-		float distanceToMidPoint1 = extendedMidPoint1.distanceTo(this.paneCenterPoint);
-		float distanceToMidPoint2 = extendedMidPoint2.distanceTo(this.paneCenterPoint);
-		if (extendedMidPoint1.distanceTo(this.paneCenterPoint) > extendedMidPoint2
-				.distanceTo(this.paneCenterPoint)) {
+		Point extendedReferencePoint;
+		if (extendedMidPoint1.distanceTo(lineSegment.getReferencePoint()) > extendedMidPoint2
+				.distanceTo(lineSegment.getReferencePoint())) {
 			extendedMidPoint = extendedMidPoint1;
+			extendedReferencePoint = extendedReferencePoint1;
 		} else {
 			extendedMidPoint = extendedMidPoint2;
+			extendedReferencePoint = extendedReferencePoint2;
 		}
 
 		// 8. Add the additional line segments
-		List<Line> returnAdditionalSegments = new ArrayList<Line>(2);
-		returnAdditionalSegments.add(Line.newLine(lineSegment.getStart(),
-				extendedMidPoint));
-		returnAdditionalSegments.add(Line.newLine(lineSegment.getEnd(),
-				extendedMidPoint));
+		List<KochSnowflakeLine> returnAdditionalSegments = new ArrayList<KochSnowflakeLine>(
+				2);
+		returnAdditionalSegments.add(KochSnowflakeLine.newLine(
+				lineSegment.getStart(), extendedMidPoint,
+				extendedReferencePoint));
+		returnAdditionalSegments
+				.add(KochSnowflakeLine.newLine(lineSegment.getEnd(),
+						extendedMidPoint, extendedReferencePoint));
 
 		return returnAdditionalSegments;
 	}

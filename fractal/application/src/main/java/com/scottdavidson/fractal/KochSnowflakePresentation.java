@@ -1,131 +1,61 @@
 package com.scottdavidson.fractal;
 
-import java.awt.event.KeyEvent;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import processing.core.PApplet;
+
+import com.scottdavidson.fractal.util.BasicLine;
+import com.scottdavidson.fractal.util.KochSnowflakeLine;
 import com.scottdavidson.fractal.util.Line;
 import com.scottdavidson.fractal.util.Point;
 import com.scottdavidson.fractal.util.ShapeFactory;
 
-import processing.core.PApplet;
-import processing.core.PFont;
-import processing.core.PImage;
-
 public class KochSnowflakePresentation extends PApplet {
+	
+	private static final long serialVersionUID = 1161694110646140840L;
+
 	int width = 800, height = 800;
 
-	// PImage scope, background, nightscope;
-	// PFont font;
-	// ArrayList<Zombie> zombies;
-	// ZombieSpawner zspawner;
-	// int counter = 1;
-	// int playerhealth = 100, score = 0, ammo = 5;
-	// boolean scratch = false;
-	// int gameOverCount;
-	// boolean regScope = true;
-
 	public void setup() {
+
 		size(width, height);
 		smooth();
 		background(255);
 
-		// // background=loadImage("D:\\_Pictures\\foggy_zombies.jpg");
-		// // scope= loadImage("D:\\_Pictures\\scope.png");
-		// background = loadImage("thick_fog.jpg");
-		// scope = loadImage("scope.png");
-		// nightscope = loadImage("scopegood1nightvis.png");
-		// font = createFont("Georgia", 20);
-		// textFont(font);
-		//
-		// zombies = new ArrayList<Zombie>();
-		// zspawner = new ZombieSpawner(this);
+		KochSnowflake snowFlake = new KochSnowflake();
+//		KochSnowflakeLine baseline = KochSnowflakeLine.newLine(Point.newPoint(200, 600),
+//				Point.newPoint(600, 600), Point.newPoint(400, 400));
+//		Line baseline = BasicLine.newBasicLine(Point.newPoint(200, 800),
+//				Point.newPoint(800, 800));
+		Line baseline = BasicLine.newBasicLine(Point.newPoint(200, 600),
+		Point.newPoint(600, 600));
 
-		// KochSnowflake snowFlake = new KochSnowflake(centerPoint());
-		// Line baseLine = Line.newLine(Point.newPoint(100, 100),
-		// Point.newPoint(130, 70));
-		// List<Line> transformedSegments =
-		// snowFlake.transformSegment(baseLine);
-		// drawLineShape(transformedSegments);
-		//
-		// baseLine = Line.newLine(Point.newPoint(200, 200),
-		// Point.newPoint(400, 330));
-		// transformedSegments = snowFlake.transformSegment(baseLine);
-		// drawLineShape(transformedSegments);
-		//
-		// baseLine = Line.newLine(Point.newPoint(700, 700),
-		// Point.newPoint(750, 630));
-		// transformedSegments = snowFlake.transformSegment(baseLine);
-		// drawLineShape(transformedSegments);
-
-		KochSnowflake snowFlake = new KochSnowflake(centerPoint());
-		Line baseline = Line.newLine(Point.newPoint(200, 600),
-				Point.newPoint(600, 600));
-
-		List<Line> snowflakeLines = ShapeFactory.createTriangle(baseline);
-		for (int i = 0; i < 8; i++) {
-			List<Line> nextLevelLines = new ArrayList<Line>();
-			for (Line line : snowflakeLines) {
-//				stroke(i * 37, i * 37, 256 - i * 37);
-				List<Line> transformedSegments = snowFlake
+		List<KochSnowflakeLine> snowflakeLines = createTriangle(baseline);
+		for (int i = 0; i < 6; i++) {
+			List<KochSnowflakeLine> nextLevelLines = new ArrayList<KochSnowflakeLine>();
+			for (KochSnowflakeLine line : snowflakeLines) {
+				List<KochSnowflakeLine> transformedSegments = snowFlake
 						.transformSegment(line);
 				nextLevelLines.addAll(transformedSegments);
 			}
-			snowflakeLines = new ArrayList<Line>();
+			snowflakeLines = new ArrayList<KochSnowflakeLine>();
 			snowflakeLines.addAll(nextLevelLines);
-//			drawLineShape(snowflakeLines);
-//			try {
-//				Thread.sleep(1300);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
 		}
+				
 		drawLineShape(snowflakeLines);
-
-		/*
-		 * List<Line> triangleLines = ShapeFactory.createTriangle(baseline);
-		 * stroke(125,125,125); drawLineShape(triangleLines);
-		 * 
-		 * List<Line> thirdLevelLines = new ArrayList<Line>(); for (Line line:
-		 * triangleLines) { stroke(200,200,200); List<Line> transformedSegments
-		 * = snowFlake.transformSegment(line);
-		 * thirdLevelLines.addAll(transformedSegments);
-		 * drawLineShape(transformedSegments); }
-		 * 
-		 * List<Line> fourthLevelLines = new ArrayList<Line>(); for (Line line:
-		 * thirdLevelLines) { stroke(200,200,200); List<Line>
-		 * transformedSegments = snowFlake.transformSegment(line);
-		 * fourthLevelLines.addAll(transformedSegments);
-		 * drawLineShape(transformedSegments); }
-		 * 
-		 * List<Line> fifthLevelLines = new ArrayList<Line>(); for (Line line:
-		 * fourthLevelLines) { stroke(200,200,200); List<Line>
-		 * transformedSegments = snowFlake.transformSegment(line);
-		 * fifthLevelLines.addAll(transformedSegments);
-		 * drawLineShape(transformedSegments); }
-		 */
-
-		// baseLine = Line.newLine(Point.newPoint(200, 600),
-		// Point.newPoint(400, 260));
-		// transformedSegments = snowFlake.transformSegment(baseLine);
-		// drawLineShape(transformedSegments);
-		//
-		// baseLine = Line.newLine(Point.newPoint(600, 600),
-		// Point.newPoint(400, 260));
-		// transformedSegments = snowFlake.transformSegment(baseLine);
-		// drawLineShape(transformedSegments);
+  
+		saveFrame("kochSnowflake6.jpg");
+		
 	}
 
-	protected void drawLine(Line line) {
+	protected void drawLine(KochSnowflakeLine line) {
 		line(line.getStart().getX(), line.getStart().getY(), line.getEnd()
 				.getX(), line.getEnd().getY());
 	}
 
-	protected void drawLineShape(List<Line> lines) {
-		for (Line line : lines) {
+	protected void drawLineShape(List<KochSnowflakeLine> lines) {
+		for (KochSnowflakeLine line : lines) {
 			drawLine(line);
 		}
 	}
@@ -135,25 +65,21 @@ public class KochSnowflakePresentation extends PApplet {
 				(float) Math.floor(this.height / 2.0));
 	}
 
-	// public void draw() {
-	//
-	// KochSnowflake snowFlake = new KochSnowflake(centerPoint());
-	// Line baseLine = Line.newLine(Point.newPoint(100, 100),
-	// Point.newPoint(130, 70));
-	// List<Line> transformedSegments = snowFlake.transformSegment(baseLine);
-	// drawLineShape(transformedSegments);
-	//
-	// baseLine = Line.newLine(Point.newPoint(200, 200),
-	// Point.newPoint(400, 330));
-	// transformedSegments = snowFlake.transformSegment(baseLine);
-	// drawLineShape(transformedSegments);
-	//
-	// baseLine = Line.newLine(Point.newPoint(700, 700),
-	// Point.newPoint(750, 630));
-	// transformedSegments = snowFlake.transformSegment(baseLine);
-	// drawLineShape(transformedSegments);
-	//
-	//
-	// }
-
+	
+	protected List<KochSnowflakeLine> createTriangle(Line baseline) {
+		
+		// Create a basic triangle
+		List<Line> triangle = ShapeFactory.createTriangle(baseline);
+		
+		// Recreate it as KochSnowflakeLines
+		List<KochSnowflakeLine> returnSnowflakeLines = 
+				new ArrayList<KochSnowflakeLine>(3);
+		for (Line line : triangle) {
+			returnSnowflakeLines.add(KochSnowflakeLine.newLine(line, centerPoint()));
+		}
+		
+		return returnSnowflakeLines;
+		
+	}
+	
 }
